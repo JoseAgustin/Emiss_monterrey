@@ -12,11 +12,12 @@
 !
 !
 !   modificado
-!   14/08/2012  nombre archivos de PM 
+!   14/08/2012  Nombre archivos de PM
 !   02/10/2012  Ajuste en horas dia previo subroutina lee
 !   10/07/2017  Para 2014 nnscc 52, inclusion del 37123 y BC, CO2 y METH
-!   12/07/2017  Revision linea 158 se incluye else deallocate. Falta revisar 155
+!   12/07/2017  Revision linea 158 se incluye else deallocate. Falta revisar 155 DONE
 !    2/11/2017  Huso horario se calcula con el estado
+!    5/11/2017  Actualizacion en numero de lineas totales en emiA
 !
 module variables
 integer :: month,daytype
@@ -24,6 +25,7 @@ integer,parameter :: nf=10 !number of emission files
 integer,parameter :: nnscc=58 !max number of scc descriptors in input files
 integer,parameter ::juliano=365
 integer,parameter :: nh=24 ! number of hour per day
+integer,parameter :: nmax = 36943!number of max lines in emiA
 integer :: nm ! line number in emissions file
 integer :: lh ! line number in uso horario
 integer,dimension(nf) :: nscc ! number of scc codes per file
@@ -148,10 +150,11 @@ subroutine lee
 	end do
 100	 continue
      print *,"  mn= ",nm
+    if (nm.gt.nmax) STOP "*** ERROR: nm larger than nmax edit code line 28"
 	 rewind(10)
 	 if(k.eq.1) then
         allocate(idcel(nm),idcel2(nm),idcel3(nm),idsm(nm))
-        allocate(emiA(nf,37123,nnscc))
+        allocate(emiA(nf,nmax,nnscc))
         idsm=0
     else
         deallocate(idcel,idcel2,idcel3,idsm)
