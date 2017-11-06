@@ -385,7 +385,7 @@ subroutine store
     dimids4 = (/id_dim(3),id_dim(4),id_dim(6),id_dim(1)/)
     print *,"Attributos Globales NF90_GLOBAL"
     !Attributos Globales NF90_GLOBAL
-    call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Centraol Mexico Area"))
+    call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey-Saltillo Area"))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "START_DATE",iTime))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "DAY ",cday))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "SIMULATION_START_DATE",iTime))
