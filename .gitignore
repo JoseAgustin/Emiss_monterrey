@@ -6,11 +6,13 @@
 a.out
 salida*
 *.log
+.tmpfile
 libnetcdf*
 02_Aemis2
-02_aemis/A*.csv
+02_aemis/A*14.csv
 02_aemis/ANH3_2014.csv 
-index.csv
+02_aemis/index.csv
+04_temis/index.csv
 04_temis/TA*csv
 05_semisM/M_*.csv
 06_temisM/TM*.csv

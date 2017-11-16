@@ -22,7 +22,7 @@
 !   Dos capas en puntuales                  18707/2017
 !   Se incluyen NO y NO2 de moviles         01/11/2017
 !
-module vars
+module varss
     integer :: nf    ! number of files antropogenic
     integer :: ns    ! number of compounds
     integer ::ncel   ! number of cell in the grid
@@ -70,10 +70,10 @@ module vars
     common /domain/ ncel,nl,nx,ny,zlev
     common /date/ current_date,cday,mecha,cname
 
-end module vars
+end module varss
 
 program guarda_nc
-use vars
+use varss
 use netcdf
 
 	call lee
@@ -329,7 +329,7 @@ subroutine store
       real,ALLOCATABLE :: ea(:,:,:,:)
       real :: CDIM=3.0  ! celdimension in km
       character (len=19),dimension(NDIMS) ::sdim
-      character(len=40):: FILE_NAME
+      character(len=39):: FILE_NAME
       character(len=19),dimension(1,1)::Times
       character(len=19):: iTime
       character(8)  :: date
@@ -382,7 +382,7 @@ subroutine store
     dimids4 = (/id_dim(3),id_dim(4),id_dim(6),id_dim(1)/)
     print *,"Attributos Globales NF90_GLOBAL"
     !Attributos Globales NF90_GLOBAL
-    call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey-Saltillo Area"))
+    call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey City"))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "START_DATE",iTime))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "DAY ",cday))
     call check( nf90_put_att(ncid, NF90_GLOBAL, "SIMULATION_START_DATE",iTime))

@@ -18,6 +18,7 @@
 !   12/07/2017  Revision linea 158 se incluye else deallocate. Falta revisar 155 DONE
 !    2/11/2017  Huso horario se calcula con el estado
 !    5/11/2017  Actualizacion en numero de lineas totales en emiA
+!   15/11/2017  Seleccion de numero de linea mayor de los datos de entrada emiA
 !
 module variables
 integer :: month,daytype
@@ -25,7 +26,7 @@ integer,parameter :: nf=10 !number of emission files
 integer,parameter :: nnscc=58 !max number of scc descriptors in input files
 integer,parameter ::juliano=365
 integer,parameter :: nh=24 ! number of hour per day
-integer,parameter :: nmax = 36943!number of max lines in emiA
+integer :: nmax !number of max lines in emiA
 integer :: nm ! line number in emissions file
 integer :: lh ! line number in uso horario
 integer,dimension(nf) :: nscc ! number of scc codes per file
@@ -91,7 +92,7 @@ subroutine lee
 	!          jan feb mar apr may jun jul aug sep oct nov dec
 	data daym /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
 
-	print *,"READING fecha.txt file"
+   print *,"READING fecha.txt file"
 	open (unit=10,file='fecha.txt',status='OLD',action='read')
 	read (10,*)month  
 	read (10,*)idia
@@ -137,6 +138,8 @@ subroutine lee
     close(10)
 	if(daytype.eq.0) STOP 'Error in daytype=0'
 !
+   call maxline(nmax)
+
 	do k=1,nf
 	open (unit=10,file=efile(k),status='OLD',action='read')
 	read (10,'(A)') cdum
@@ -149,8 +152,8 @@ subroutine lee
 	   nm=nm+1
 	end do
 100	 continue
-     print *,"  mn= ",nm
-    if (nm.gt.nmax) STOP "*** ERROR: nm larger than nmax edit code line 28"
+     write(6,134)"  mn=",nm,"nmax=",nmax
+    if (nm.gt.nmax) STOP "*** ERROR: nm larger than nmax edit code line 140"
 	 rewind(10)
 	 if(k.eq.1) then
         allocate(idcel(nm),idcel2(nm),idcel3(nm),idsm(nm))
@@ -377,11 +380,12 @@ print *,'   Done ',nfile,daytype,maxval(hCST)!,maxval(hPST),maxval(hMST)
 	 !end do
 	 print *,'   Done ',nfilep,daytype,maxval(hEST)!,maxval(hPST),maxval(hMST)
 	end do ! K
-	close(15)
-	close(16)
-	close(17)
-	close(18)
+    close(15)
+    close(16)
+    close(17)
+    close(18)
     close(19)
+134 FORMAT(4x,A5,x,I6,x,A5,I6)
 end subroutine lee
 !                                 _
 !  ___ ___  _ __ ___  _ __  _   _| |_ ___
@@ -522,15 +526,7 @@ subroutine count
   integer idum
 !  Se ordenan los indices
   call hpsort(size(idcel3))
-!  do i=1,nm-1
-!    do j=1,nm-i
-!     if(idcel3(j).gt.idcel3(j+1)) then
-!       idum = idcel3(j)
-!       idcel3(j)=idcel3(j+1)
-!       idcel3(j+1)=idum
-!     end if
-!    end do
-!  end do
+
   idcel2(1)=idcel3(1)
   j=1
   do i=2,nm
@@ -584,6 +580,12 @@ subroutine huso_horario
         STOP 'Value must be larger or equal to 5'
     end if
 end subroutine huso_horario
+!  _                          _
+! | |__  _ __  ___  ___  _ __| |_
+! | '_ \| '_ \/ __|/ _ \| '__| __|
+! | | | | |_) \__ \ (_) | |  | |_
+! |_| |_| .__/|___/\___/|_|   \__|
+!       |_|
 subroutine hpsort(n)
     implicit none
     integer n
@@ -623,6 +625,28 @@ subroutine hpsort(n)
       idcel3(i)=rra
     goto 10
 end subroutine hpsort
+!                       _ _
+!  _ __ ___   __ ___  _| (_)_ __   ___
+! | '_ ` _ \ / _` \ \/ / | | '_ \ / _ \
+! | | | | | | (_| |>  <| | | | | |  __/
+! |_| |_| |_|\__,_/_/\_\_|_|_| |_|\___|
+!
+subroutine maxline(entero)
+    integer,intent(out):: entero
+    integer:: k,lmin
+    character(len=25):: str
+    lmin=-1
+    do k=1,nf
+      str="wc -l "//efile(k)//" >sal"
+      call EXECUTE_COMMAND_LINE(str)
+      open (unit=10,file='sal',status='OLD')
+      read (10,*) lmin
+      entero=max(lmin,entero)
+      !print '(I6)',entero
+      close(10)
+    end do
+    call EXECUTE_COMMAND_LINE("rm sal")
+end subroutine maxline
 subroutine piksrt(n)
 INTEGER n
 integer i,j

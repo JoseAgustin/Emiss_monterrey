@@ -11,6 +11,8 @@
 !
 ! ifort -O2 -axAVX -lnetcdff -L$NETCDF/lib -I$NETCDF/include g_radm_2014.f90 -o radm2.exe
 !
+!   Si son mas de 8 capas arreglar linea 219
+!      eeft(i,j,ii,ih,9-levl)=eft(i,j,ii,ih,9-levl)+edum(ih)/WTM(ii)
 !
 !   Actualizacion de xlat, xlon             26/08/2012
 !   Conversion de unidades en aerosoles     04/10/2012
@@ -352,7 +354,7 @@ subroutine store
       dimids4 = (/id_dim(3),id_dim(4),id_dim(6),id_dim(1)/)
       print *,"Attributos Globales NF90_GLOBAL"
       !Attributos Globales NF90_GLOBAL
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey-Saltilli Area"))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey City"))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "START_DATE",iTime))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "DAY ",cday))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "SIMULATION_START_DATE",iTime))
