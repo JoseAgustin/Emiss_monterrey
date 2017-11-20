@@ -1,25 +1,26 @@
 !
-!	g_radm_2014.f90
+!	g_radm_2014n.f90
 !	
 !
-!  Creado por Jose Agustin Garcia Reynoso el 12/07/17.
+!  Creado por Jose Agustin Garcia Reynoso el 19/11/2017.
 !
 !
 !  Proposito:
-!            Guarda los datos del inventari para el 
-!            mecanismo RADM2 en formato netcdf
+!            Guarda los datos del inventario para el
+!            mecanismo RADM2 en formato netcdf y con NAMELIST
 !
-! ifort -O2 -axAVX -lnetcdff -L$NETCDF/lib -I$NETCDF/include g_radm_2014n.f90 -o radm2014n.exe
+! ifort -O2 -axAVX -lnetcdff -L$NETCDF/lib -I$NETCDF/include g_radm_2014n.f90 -o radm2n.exe
 !
-!   Si son mas de 8 capas arreglar linea 219
-!      eeft(i,j,ii,ih,9-levl)=eft(i,j,ii,ih,9-levl)+edum(ih)/WTM(ii)
 !
 !   Actualizacion de xlat, xlon             26/08/2012
 !   Conversion de unidades en aerosoles     04/10/2012
 !   Inclusion de NO2 en las emisiones       19/02/2014
 !   Inclusion de poblacion en la salida     10/06/2014
 !   Para año 2014                           12/07/2017
-!   Dos capas en puntuales                  18707/2017
+!   Dos capas en puntuales                  18/07/2017
+!   Se incluyen NO y NO2 de moviles         01/11/2017
+!   Se incluye NAMELIST                     08/11/2017
+!   Se lee CDIM y titulo de localiza.csv    19/11/2017
 !
 module vars
     integer :: nf    ! number of files antropogenic
@@ -44,6 +45,7 @@ module vars
     real,allocatable :: lon(:),lat(:),pop(:)
     real,allocatable ::xlon(:,:),xlat(:,:),pob(:,:)
     real,allocatable :: utmxd(:,:),utmyd(:,:)
+    real :: CDIM      ! celdimension in km
 
 	parameter(nf=36,ns=34,radm=ns+5,nh=24)
 	
@@ -61,8 +63,9 @@ module vars
 	'TOLUENE  ','XYLENE  ','Carbon Dioxide','PM_10','PM_25 ','Sulfates ','Nitrates ','PM25I',&
 	'Organic ','Elemental Carbon  ','SulfatesJ','NitratesJ','PM25J','Organic','Elemental Carbon'/)
     character (len=19) :: current_date,current_datem,mecha
-    common /domain/ ncel,nl,nx,ny,zlev
-    common /date/ current_date,cday,mecha,cname
+    character (len=40) :: titulo
+    common /domain/ ncel,nl,nx,ny,zlev,CDIM
+    common /date/ current_date,cday,mecha,cname,titulo
 end module vars
 
 program guarda_nc
@@ -126,45 +129,43 @@ subroutine lee
 !        HC3   HC5   HC8 HCHO ISOP  KET   MACR MGLY MVK OL2 OLI
 !        OLT   ORA1  ORA2  TOL  XYL  CO2
 !       PM10  PM2.5  PSO4 PNO3 OTHER POA   PEC  CH4   CN
-
     unit_nml = 9
     existe = .FALSE.
     write(6,*)' >>>> Reading file - namelist.radm'
     inquire ( FILE = 'namelist.radm' , EXIST = existe )
 
     if ( existe ) then
-    !  Opening the file.
-    open ( FILE   = 'namelist.radm' ,      &
-    UNIT   =  unit_nml        ,      &
-    STATUS = 'OLD'            ,      &
-    FORM   = 'FORMATTED'      ,      &
-    ACTION = 'READ'           ,      &
-    ACCESS = 'SEQUENTIAL'     )
-    !  Reading the file
-    READ (unit_nml , NML = SCALE )
-    !WRITE (6    , NML = SCALE )
-     else
+      !  Opening the file.
+      open ( FILE   = 'namelist.radm' ,      &
+      UNIT   =  unit_nml        ,      &
+      STATUS = 'OLD'            ,      &
+      FORM   = 'FORMATTED'      ,      &
+      ACTION = 'READ'           ,      &
+      ACCESS = 'SEQUENTIAL'     )
+      !  Reading the file
+      READ (unit_nml , NML = SCALE )
+      !WRITE (6    , NML = SCALE )
+    else
       stop '***** No namelist.radm'
     ENDIF
 
        mecha="RADM2"
-
 	write(6,*)' >>>> Reading file -  localiza.csv ---------'
 
-	open (unit=10,file='localiza.csv',status='old',action='read')
-	read (10,*) cdum  !Header
-	read (10,*) nx,ny  !Header
-	ncel=nx*ny
-    allocate(idcg(ncel),lon(ncel),lat(ncel),pop(ncel))
-    allocate(utmx(ncel),utmy(ncel),utmz(ncel))
-    allocate(xlon(nx,ny),xlat(nx,ny),pob(nx,ny))
-    allocate(utmxd(nx,ny),utmyd(nx,ny),utmzd(nx,ny))
-    allocate(eft(nx,ny,nf,nh,8))
-    zlev=0
-    eft=0
-	do k=1,ncel
+  open (unit=10,file='localiza.csv',status='old',action='read')
+  read (10,*) cdum  !Header
+  read (10,*) nx,ny,titulo  ! Dimensions and Title
+  ncel=nx*ny
+  allocate(idcg(ncel),lon(ncel),lat(ncel),pop(ncel))
+  allocate(utmx(ncel),utmy(ncel),utmz(ncel))
+  allocate(xlon(nx,ny),xlat(nx,ny),pob(nx,ny))
+  allocate(utmxd(nx,ny),utmyd(nx,ny),utmzd(nx,ny))
+  allocate(eft(nx,ny,nf,nh,8))
+  zlev=0
+  eft=0
+  do k=1,ncel
 	read(10,*) idcg(k),lon(k),lat(k),i,pop(k),utmx(k),utmy(k),utmz(k)
-	end do
+  end do
 !
   do i=1,nx
     do j=1,ny
@@ -177,7 +178,8 @@ subroutine lee
         utmzd(i,j)=utmz(k)
     end do
   end do
-!   print *,ncel,xlon(1,1),xlat(1,1)
+  CDIM=(utmx(2)-utmx(1))/1000.  ! from meters to km
+  print *,CDIM,trim(titulo)
   close(10)
 
   do ii=1,nf
@@ -275,7 +277,8 @@ subroutine lee
                   eft(i,j,is,ih,levld)=eft(i,j,is,ih,levld)+edum(ih)/WTM(is)*scalp(ii)
                 end if
 			  end do
-              zlev =max(zlev,levl,levld)
+          zlev =max(zlev,levl,levld)
+          if(zlev.gt.8) Stop "*** Change dimension line  allocate(eft.."
 			  exit busca3
 			end if
 		 end do
@@ -310,7 +313,6 @@ subroutine store
     integer :: isp(radm)
     integer,dimension(NDIMS):: dim,id_dim
     real,ALLOCATABLE :: ea(:,:,:,:)
-    real :: CDIM=3.0  ! celdimension in km
     character (len=19),dimension(NDIMS) ::sdim
     character(len=39):: FILE_NAME
     character(len=19),dimension(1,1)::Times
@@ -321,7 +323,7 @@ subroutine store
   	   DATA isp / 1, 2, 3, 4, 5, 6, 7, 8, 9,10, &
                  11,12,13,14,15, 16,17,18,19,20, &
                  21,22,23,24,25, 26,27,28,29,30, &
-				 31,32,33,34,35, 36,37,38,39/
+                 31,32,33,34,35, 36,37,38,39/
 
     data sdim /"Time               ","DateStrLen         ","west_east          ",&
 	&          "south_north        ","bottom_top         ","emissions_zdim_stag"/	
@@ -364,7 +366,7 @@ subroutine store
       dimids4 = (/id_dim(3),id_dim(4),id_dim(6),id_dim(1)/)
       print *,"Attributos Globales NF90_GLOBAL"
       !Attributos Globales NF90_GLOBAL
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE","EI 2014 emissions for Monterrey City"))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "TITLE",titulo))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "START_DATE",iTime))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "DAY ",cday))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "SIMULATION_START_DATE",iTime))
@@ -373,8 +375,8 @@ subroutine store
       call check( nf90_put_att(ncid, NF90_GLOBAL, "BOTTOM-TOP_GRID_DIMENSION",1))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "DX",CDIM*1000))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "DY",CDIM*1000))
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "CEN_LAT",(MAXVAL(lat)+MINVAL(lat))/2))
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "CEN_LON",(MAXVAL(lon)+MINVAL(lon))/2))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "CEN_LAT",xlat(nx/2,ny/2)))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "CEN_LON",xlon(nx/2,ny/2)))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "TRUELAT1",17.5))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "TRUELAT2",29.5))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "MOAD_CEN_LAT",24.020222))
@@ -467,25 +469,24 @@ tiempo: do it=iit,eit
 
   	      Times(1,1)=current_date(1:19)
 			  if (periodo.eq. 1) then
-			    call check( nf90_put_var(ncid,id_var(radm+1),Times,start=(/1,it+1/)) )
-				call check( nf90_put_var(ncid, id_varlong,xlon,start=(/1,1,it+1/)) )
-				call check( nf90_put_var(ncid, id_varlat,xlat,start=(/1,1,it+1/)) )
-                call check( nf90_put_var(ncid, id_varpop,pob,  start=(/1,1,it+1/)) )
+              call check( nf90_put_var(ncid,id_var(radm+1),Times,start=(/1,it+1/)) )
+              call check( nf90_put_var(ncid, id_varlong,xlon,start=(/1,1,it+1/)) )
+              call check( nf90_put_var(ncid, id_varlat,xlat,start=(/1,1,it+1/)) )
+              call check( nf90_put_var(ncid, id_varpop,pob,  start=(/1,1,it+1/)) )
 			  else
-		        call check( nf90_put_var(ncid,id_var(radm+1),Times,start=(/1,it-11/)) )
-				call check( nf90_put_var(ncid, id_varlong,xlon,start=(/1,1,it-11/)) )
-				call check( nf90_put_var(ncid, id_varlat,xlat,start=(/1,1,it-11/)) )
-                call check( nf90_put_var(ncid, id_varpop,pob,start=(/1,1,it-11/)) )
-
+              call check( nf90_put_var(ncid,id_var(radm+1),Times,start=(/1,it-11/)) )
+              call check( nf90_put_var(ncid, id_varlong,xlon,start=(/1,1,it-11/)) )
+              call check( nf90_put_var(ncid, id_varlat,xlat,start=(/1,1,it-11/)) )
+              call check( nf90_put_var(ncid, id_varpop,pob,start=(/1,1,it-11/)) )
 			  endif
             end if   ! for kk == 1
-            do i=1, nx
-                do j=1, ny
-				  do l=1,zlev
-                   ea(i,j,l,1)=eft(i,j,ikk,it+1,l) /(CDIM*CDIM)
-				  end do
-                end do
+          do i=1, nx
+            do j=1, ny
+              do l=1,zlev
+                 ea(i,j,l,1)=eft(i,j,ikk,it+1,l) /(CDIM*CDIM)
+              end do
             end do
+          end do
             if(periodo.eq.1) then
                 call check( nf90_put_var(ncid, id_var(isp(ikk)),ea,start=(/1,1,1,it+1/)) )
             else
@@ -494,21 +495,21 @@ tiempo: do it=iit,eit
 		 end do gases
         aerosol: do ikk=ipm-1,ns ! from PM10
 			ea=0.0
-            do i=1, nx
-                do j=1, ny
-			  do l=1,zlev
-				ea(i,j,l,1)=eft(i,j,ikk,it+1,l) /(CDIM*CDIM) !entre 3x3 km
-			  end do
-                end do
+        do i=1, nx
+          do j=1, ny
+            do l=1,zlev
+              ea(i,j,l,1)=eft(i,j,ikk,it+1,l) /(CDIM*CDIM) !entre 9x9 km
             end do
+          end do
+        end do
 !
-            if(periodo.eq.1) then
-                call check( nf90_put_var(ncid, id_var(isp(ikk)),ea*0.8,start=(/1,1,1,it+1/)) )
-                call check( nf90_put_var(ncid, id_var(isp(ikk+5)),ea*0.2,start=(/1,1,1,it+1/)) )
-            else
-                call check( nf90_put_var(ncid, id_var(isp(ikk)),ea*0.8,start=(/1,1,1,it-11/)) )        !******
-                call check( nf90_put_var(ncid, id_var(isp(ikk+5)),ea*0.2,start=(/1,1,1,it-11/)) )        !******
-            endif
+        if(periodo.eq.1) then
+          call check( nf90_put_var(ncid, id_var(isp(ikk)),ea*0.8,start=(/1,1,1,it+1/)) )
+          call check( nf90_put_var(ncid, id_var(isp(ikk+5)),ea*0.2,start=(/1,1,1,it+1/)) )
+        else
+          call check( nf90_put_var(ncid, id_var(isp(ikk)),ea*0.8,start=(/1,1,1,it-11/)) )        !******
+          call check( nf90_put_var(ncid, id_var(isp(ikk+5)),ea*0.2,start=(/1,1,1,it-11/)) )        !******
+        endif
 		 end do aerosol
 		end do tiempo
         call check( nf90_close(ncid) )

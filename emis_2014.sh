@@ -108,8 +108,8 @@ cd ../10_storage
 ./saprc.exe > ../saprc.log
 ./cbm5.exe  > ../cbm5.log
 ./racm2.exe > ../racm2.log
- let dia=dia+1
+ (( dia++ ))
 done
 #ncrcat -O wrfchemi.d01.radm2.2016-04-1* wrfchemi_d01_2016-04-16_00:00:00
 #mv wrfchemi_d01_2016-04-16_00:00:00 ../../DOMAIN/mecanismos/emisiones
-echo "DONE  guarda_RADM"
+echo "DONE  guarda"
