@@ -12,7 +12,8 @@ objec2 = g_2014_racm.o
 objec3 = g_saprc_2014.o
 objec4 = g_cbm5_2014.o
 
-RM_LIST =       *.mod *.o core .tmpfile *.exe
+RM_LIST = *.mod *.o core .tmpfile *.exe wrfchemi.*
+RM	=	/bin/rm -f 
 
 # Ejecuta
 default:
@@ -25,8 +26,8 @@ default:
 	"MAKE           = $(MAKE)"      "CPP            = /lib/cpp"     \
 	"CPPFLAGS       = -I. -C -traditional"  \
 	"FC             = ifort"   "CFLAGS         = -I."       \
-	"LDOPTIONS      = -fast -axAVX  -align commons  -lnetcdff -L$(NETCDF)/lib ”          \
-	"FCFLAGS        = -fast -axAVX  -align commons -I$(NETCDF)/include ” \
+	"LDOPTIONS      = -O2 -axAVX  -align commons  -lnetcdff -L$(NETCDF)/lib "          \
+	"FCFLAGS        = -O2 -axAVX  -align commons -I$(NETCDF)/include " \
 	"LOCAL_LIBRARIES= " ) ; \
 	else \
 	grep Darwin .tmpfile ; \

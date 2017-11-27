@@ -10,8 +10,8 @@ FIX01 =
 objec1 = agg_a.o
 objec2 = agg_m.o
 objec3 = agg_p.o
-RM_LIST =       *.mod *.o core .tmpfile *.exe
-
+RM_LIST =  *.mod *.o core .tmpfile *.exe RA*.txt SAPRC9*txt CBM05*txt
+RM	=	/bin/rm -f 
 # Ejecuta
 default:
 	uname -a > .tmpfile
@@ -22,8 +22,8 @@ default:
 	"LN             = $(LN)"        "MACH           = DEC"          \
 	"MAKE           = $(MAKE)"      "CPP            = /lib/cpp"     \
 	"CPPFLAGS       = -I. -C -traditional"  \
-	"FC             = ifort"        "FCFLAGS        = -D$(MACH) -I. -convert big_endian -fast”\
-	"LDOPTIONS      = -convert big_endian -fast”  "CFLAGS         = -I."          \
+	"FC             = ifort"        "FCFLAGS        = -O2 -axAVX  -align commons " \
+	"LDOPTIONS      = -O2 -axAVX  -align commons "  "CFLAGS         = -I."          \
 	"LOCAL_LIBRARIES= " ) ; \
 	else \
 	grep Darwin .tmpfile ; \

@@ -10,8 +10,8 @@ FIX01 =
 objec1 = pm25_speci_a.o
 objec2 = pm25_speci_m.o
 objec3 = pm25_speci_p.o
-RM_LIST =       *.mod *.o core .tmpfile *.exe
-
+RM_LIST = *.mod *.o core .tmpfile *.exe G*txt O*.txt P*txt
+RM	=	/bin/rm -f 
 # Ejecuta
 default:
 	uname -a > .tmpfile
@@ -22,8 +22,8 @@ default:
 	"LN             = $(LN)"        "MACH           = DEC"          \
 	"MAKE           = $(MAKE)"      "CPP            = /lib/cpp"     \
 	"CPPFLAGS       = -I. -C -traditional"  \
-	"FC             = ifort"        "FCFLAGS        = -D$(MACH) -I. -convert big_endian -fast”\
-	"LDOPTIONS      = -convert big_endian -fast”  "CFLAGS         = -I."          \
+	"FC             = ifort"        "FCFLAGS        = -axAVX  -align commons -O2 " \
+	"LDOPTIONS      = -axAVX  -align commons -O2"  "CFLAGS         = -I."          \
 	"LOCAL_LIBRARIES= " ) ; \
 	else \
 	grep Darwin .tmpfile ; \

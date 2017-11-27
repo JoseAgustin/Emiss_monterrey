@@ -14,7 +14,7 @@ CD      =       cd
 LN      =       ln -s
 MAKE    =       make -i -f Makefile
 RM      =       /bin/rm -f
-RM_LIST =       *.mod *.o *.f core .tmpfile *.exe 
+RM_LIST =       *.mod *.o core .tmpfile *.exe  TM*2014.csv OTHE_M.csv POA_M.csv GSO4_M.csv
 INTEL_LIB =     /opt/intel/lib
 
 # Ejecuta
@@ -27,8 +27,8 @@ default:
 	"LN             = $(LN)"        "MACH           = DEC"          \
 	"MAKE           = $(MAKE)"      "CPP            = /lib/cpp"     \
 	"CPPFLAGS       = -I. -C -traditional"  \
-	"FC             = ifort"        "FCFLAGS        = -D$(MACH) -I. -convert big_endian -fast”\
-	"LDOPTIONS      = -convert big_endian -fast”  "CFLAGS         = -I."          \
+	"FC             = ifort"        "FCFLAGS        = -O2 -axAVX  -align commons" \
+	"LDOPTIONS      = -O2 -axAVX  -align commons"  "CFLAGS         = -I."          \
 	"LOCAL_LIBRARIES= " ) ; \
 	else \
 	grep Darwin .tmpfile ; \
