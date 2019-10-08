@@ -23,7 +23,7 @@
 !   Se incluyen NO y NO2 de moviles         01/11/2017
 !   Se lee CDIM y titulo de localiza.csv    19/11/2017
 !   Salidas preparadas para CMAQ            04/08/2018
-!   Se emplea namelist.cb05                 04/08/2018
+!   Se emplea namelist.cbm05                04/08/2018
 !   Se actualiza las fechas y datos         21/06/2019
 !   Se incluye descripción de archivo        8/10/2019
 !
@@ -38,7 +38,7 @@ module varsc
     integer,parameter :: ns=28    ! number of compounds
     integer,parameter ::radm=ns   ! number of Mechanism classes
     integer,parameter :: nh=24    !  hours in a day
-    integer,parameter :: ipm=23   ! Posicion del /VARarchivo PM2.5
+    integer,parameter :: ipm=23   ! Posicion del archivo PM2.5
     integer,parameter :: icn=30    ! Posicion archivo CN del INEM
     integer,parameter :: jcn=28    ! Posicion archivo CN de especiacion
     integer,parameter :: imt=29    ! Posicion archivo CH4 del INEM
