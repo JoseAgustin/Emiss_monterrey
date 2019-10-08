@@ -23,7 +23,9 @@
 !   Se incluyen NO y NO2 de moviles         01/11/2017
 !   Se lee CDIM y titulo de localiza.csv    19/11/2017
 !   Salidas preparadas para CMAQ            04/08/2018
-!   Se emplea namelist.saprc                04/08/2018
+!   Se emplea namelist.cb05                 04/08/2018
+!   Se actualiza las fechas y datos         21/06/2019
+!   Se incluye descripción de archivo        8/10/2019
 !
 module varsc
     integer ::ncel   ! number of cell in the grid
@@ -36,7 +38,7 @@ module varsc
     integer,parameter :: ns=28    ! number of compounds
     integer,parameter ::radm=ns   ! number of Mechanism classes
     integer,parameter :: nh=24    !  hours in a day
-    integer,parameter :: ipm=23   ! Posicion del archivo PM2.5
+    integer,parameter :: ipm=23   ! Posicion del /VARarchivo PM2.5
     integer,parameter :: icn=30    ! Posicion archivo CN del INEM
     integer,parameter :: jcn=28    ! Posicion archivo CN de especiacion
     integer,parameter :: imt=29    ! Posicion archivo CH4 del INEM
@@ -318,7 +320,7 @@ subroutine store
     integer :: id,iu
     integer :: julday
     integer :: isp(radm)
-    integer :: icdate,ictime
+    integer :: icdate,ictime,jcdate,jctime
     integer,dimension(NDIMS):: dim,id_dim
     integer,dimension(2,1,1)::TFLAG
     real,ALLOCATABLE :: ea(:,:,:,:)
@@ -381,11 +383,11 @@ subroutine store
 call check( nf90_put_att(ncid, NF90_GLOBAL, "IOAPI_VERSION","$Id: @(#) ioapi library version 3.0 OpenMP enabled $"))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "EXEC_ID","????????????????                                                                "))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "FTYPE ",1))
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "CDATE ",icdate))!
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "CTIME ",ictime))!
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "WDATE ",icdate))!
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "WTIME ",ictime))!
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "SDATE ",icdate))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "CDATE ",intc(current_date(1:4))*1000+julday))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "CTIME ",0))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "WDATE ",intc(current_date(1:4))*1000+julday))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "WTIME ",0))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "SDATE ",intc(current_date(1:4))*1000+julday))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "STIME ",0))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "TSTEP ",10000))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "NTHIK ",1))
@@ -396,7 +398,7 @@ call check( nf90_put_att(ncid, NF90_GLOBAL, "IOAPI_VERSION","$Id: @(#) ioapi lib
       call check( nf90_put_att(ncid, NF90_GLOBAL, "GDTYP ",2))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "P_ALP ",17.5))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "P_BET ",29.5))!
-      call check( nf90_put_att(ncid, NF90_GLOBAL, "P_GAM ",-100.5))!
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "P_GAM ",xlon(nx/2,ny/2)))! -100.5
       call check( nf90_put_att(ncid, NF90_GLOBAL, "XCENT ",xlon(nx/2,ny/2)))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "YCENT ",xlat(nx/2,ny/2)))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "XORIG ",(-nx/2*CDIM*1000)))
@@ -408,13 +410,19 @@ call check( nf90_put_att(ncid, NF90_GLOBAL, "IOAPI_VERSION","$Id: @(#) ioapi lib
       call check( nf90_put_att(ncid, NF90_GLOBAL, "VGLVLS ","0,0"))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "GDNAM ","MEXICO_9"))!
       call check( nf90_put_att(ncid, NF90_GLOBAL, "UPNAM ","CREATESET"))!
-call check( nf90_put_att(ncid, NF90_GLOBAL, "VAR-LIST ","CO              NH3            NO              NO2             SO2             ALD2            CH4             ALDX            ETH             ETHA            ETOH            IOLE                 MEOH            FORM            ISOP            OLE             PAR             TERP            TOL             XYL             CO2             PM_10           PMFP            PSO4            PNO3            PM25I           POA             PEC                          "))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "VAR-LIST ","CO              NH3            NO              NO2             SO2             ALD2            CH4             ALDX            ETH             ETHA            ETOH            IOLE                 MEOH            FORM            ISOP            OLE             PAR             TERP            TOL             XYL             CO2             PM_10           PMFP            PSO4            PNO3            PM25I           POA             PEC                          "))
+call check( nf90_put_att(ncid, NF90_GLOBAL, "FILEDESC","Area source emissions data                                                      /FROM/ CCAUNAM                                                                 /VERSION/ CIEM1.0_                                                                                                                                            /BASE YEAR/     2014                                                            /NUMBER OF FILES/   1                                                           /FILE POSITION/   1                                                             /NUMBER OF VARIABLES/  28"))
+      call check( nf90_put_att(ncid, NF90_GLOBAL, "HISTORY",""))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "MECHANISM",mecha))
       call check( nf90_put_att(ncid, NF90_GLOBAL, "CREATION_DATE",hoy))
 
 	print *,"Define las variables"
 !  Define las variables
 	call check( nf90_def_var(ncid, "TFLAG", NF90_INT, dimids3,id_var(radm+1) ) )
+!      Assign  attributes
+      call check( nf90_put_att(ncid, id_var(radm+1), "units", "<YYYYDDD,HHMMSS>"  ) )
+      call check( nf90_put_att(ncid, id_var(radm+1), "long_name", "FLAG           "  ) )
+      call check( nf90_put_att(ncid, id_var(radm+1), "var_desc", "Timestep-valid flags:  (1) YYYYDDD or (2) HHMMSS                                "  ) )
 !  Attributos para cada variable 
 !    call check( nf90_def_var(ncid, "XLONG", NF90_REAL,(/id_dim(3),id_dim(4),id_dim(1)/),id_varlong ) )
 !       ! Assign  attributes
@@ -638,6 +646,7 @@ character(len=3) function mes(num)
     iyear=intc(year)
     imes=intc(mes)
     iday=intc(day)
+    print *,iyear,imes,iday
     if (mod(iyear,4)==0.and.mod(iyear,100)/=0) month(2)=29
     if (imes==1) then
       juliano=iday
