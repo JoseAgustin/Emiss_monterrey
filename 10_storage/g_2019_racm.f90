@@ -137,7 +137,9 @@ subroutine lee
     'T_ANNCO2.csv','T_ANNPM10.csv','T_ANNPM25.csv', &
     'GSO4_P.txt','PNO3_P.txt','OTHE_P.txt','POA_P.txt','PEC_P.txt',&
     'T_ANNCH4.csv','T_ANNCN.csv'/
-
+    NAMELIST /SCALE/ scala,scalm,scalp
+    integer unit_nml
+    logical existe
 ! Mole weight
   DATA WTM /28., 17., 30., 46., 64.,   16., 30., 44., 72., 114.,&
             28., 68., 42., 54., 78.,   92.,106.,106.,106., 30., &
@@ -151,24 +153,25 @@ subroutine lee
 !          LIM	MVK	MACR	ONIT	GLY	MGLY	UALD	ACD	ORA2	ACE
 !         BALD	EOH	ETEG	ORA1	MOH   CO2
 !         PM10  PM2.5  PSO4 PNO3 OTHER POA   PEC     CH4   CN
-DATA scala /  1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,& !
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00/
-DATA scalm /  1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,& !
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00/
-DATA scalp /  1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,& !
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00,1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,&
-&             1.00,1.00,1.00,1.00,1.00,  1.00,1.00,1.00,1.00/
+   unit_nml = 9
+   existe = .FALSE.
+   write(6,*)' >>>> Reading file - namelist.racm'
+   inquire ( FILE = 'namelist.racm' , EXIST = existe )
+
+   if ( existe ) then
+!  Opening the file.
+     open ( FILE   = 'namelist.radm' ,      &
+     UNIT   =  unit_nml        ,      &
+     STATUS = 'OLD'            ,      &
+     FORM   = 'FORMATTED'      ,      &
+     ACTION = 'READ'           ,      &
+    ACCESS = 'SEQUENTIAL'     )
+!  Reading the file
+    READ (unit_nml , NML = SCALE )
+!WRITE (6    , NML = SCALE )
+   else
+     stop '***** No namelist.racm'
+   endif
 
        mecha="RACM2"
 	write(6,*)' >>>> Reading file -  localiza.csv ---------'
@@ -366,11 +369,11 @@ subroutine store
     print *,hoy
     write(current_date(4:4),'(A1)')char(9+48)
     JULDAY=juliano(current_date(1:4),current_date(6:7),current_date(9:10))
-     do periodo=1,2!2
+     do periodo=1,1!2
 	  if(periodo.eq.1) then
         FILE_NAME='wrfchemi.d01.'//trim(mecha)//'.'//current_date(1:19)         !******
 	   iit= 0
-	   eit= 11 !23
+	   eit= 23 !11
 	   iTime=current_date
 	  else if(periodo.eq.2) then
 	   iit=12
